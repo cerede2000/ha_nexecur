@@ -1,0 +1,37 @@
+{
+  "title": "NEXECUR",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to NEXECUR",
+        "description": "Enter the same credentials as in the Mon NEXECUR app.",
+        "data": {
+          "site_id": "Connection code",
+          "pin": "PIN"
+        },
+        "data_description": {
+          "site_id": "Numeric site identifier.",
+          "pin": "Secret code used to connect to the site."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reconnect NEXECUR",
+        "description": "The saved PIN is no longer accepted. Enter the current PIN.",
+        "data": {
+          "pin": "PIN"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Unable to connect to the NEXECUR service.",
+      "invalid_auth": "Invalid connection code or PIN.",
+      "invalid_site_id": "The connection code must contain digits only.",
+      "unknown": "Unexpected error. Check the Home Assistant logs."
+    },
+    "abort": {
+      "already_configured": "This NEXECUR site is already configured.",
+      "reauth_successful": "Reauthentication was successful.",
+      "unknown": "Unable to find the entry to reauthenticate."
+    }
+  }
+}

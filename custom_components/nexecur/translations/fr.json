@@ -1,0 +1,37 @@
+{
+  "title": "NEXECUR",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connexion à NEXECUR",
+        "description": "Saisissez les mêmes identifiants que dans l’application Mon NEXECUR.",
+        "data": {
+          "site_id": "Code de raccordement",
+          "pin": "PIN"
+        },
+        "data_description": {
+          "site_id": "Identifiant numérique du site.",
+          "pin": "Code secret utilisé pour se connecter au site."
+        }
+      },
+      "reauth_confirm": {
+        "title": "Reconnecter NEXECUR",
+        "description": "Le PIN enregistré n’est plus accepté. Saisissez le PIN actuel.",
+        "data": {
+          "pin": "PIN"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Connexion au service NEXECUR impossible.",
+      "invalid_auth": "Code de raccordement ou PIN incorrect.",
+      "invalid_site_id": "Le code de raccordement doit contenir uniquement des chiffres.",
+      "unknown": "Erreur inattendue. Consultez les journaux de Home Assistant."
+    },
+    "abort": {
+      "already_configured": "Ce site NEXECUR est déjà configuré.",
+      "reauth_successful": "La reconnexion a réussi.",
+      "unknown": "Impossible de retrouver la configuration à reconnecter."
+    }
+  }
+}

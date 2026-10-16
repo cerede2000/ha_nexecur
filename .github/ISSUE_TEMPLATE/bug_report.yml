@@ -1,0 +1,60 @@
+name: Signaler un bug
+description: Signaler un problème avec l’intégration NEXECUR
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de ne jamais publier votre code de raccordement, PIN, jeton de session ou adresse.
+  - type: input
+    id: home_assistant_version
+    attributes:
+      label: Version de Home Assistant
+      placeholder: "2026.10.0"
+    validations:
+      required: true
+  - type: input
+    id: integration_version
+    attributes:
+      label: Version de l’intégration
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: operation
+    attributes:
+      label: Opération concernée
+      options:
+        - Installation ou configuration
+        - Lecture de l’état
+        - Activation totale
+        - Activation partielle 1
+        - Activation partielle 2
+        - Désactivation
+        - Autre
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Décrivez le résultat obtenu et le résultat attendu.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Journaux Home Assistant nettoyés
+      description: Supprimez toute donnée personnelle ou secrète avant de coller les journaux.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Vérifications
+      options:
+        - label: J’ai supprimé les identifiants, PIN, jetons et informations personnelles.
+          required: true
+        - label: J’utilise la dernière version publiée de l’intégration.
+          required: true

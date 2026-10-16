@@ -1,0 +1,20 @@
+name: Proposer une fonctionnalité
+description: Suggérer une amélioration de l’intégration NEXECUR
+title: "[Fonctionnalité] "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: Besoin
+      description: Expliquez le besoin ou le problème à résoudre.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposition
+      description: Décrivez le comportement souhaité dans Home Assistant.
+    validations:
+      required: true
