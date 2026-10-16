@@ -161,6 +161,18 @@ class NexecurApi:
                 "NEXECUR returned HTTP 500 after an alarm command; the command "
                 "will not be resent and its result will be checked by reading status"
             )
+        except NexecurConnectionError as err:
+            # A timeout, disconnect or malformed success response can happen
+            # after the server has forwarded the command. Retrying would risk
+            # sending the same alarm order twice, so only read the state.
+            command_was_uncertain = True
+            response = {}
+            _LOGGER.warning(
+                "NEXECUR returned no usable response after an alarm command; "
+                "the command will not be resent and its result will be checked "
+                "by reading status: %s",
+                err,
+            )
 
         if not command_was_uncertain:
             self._raise_service_error(response, command=True)

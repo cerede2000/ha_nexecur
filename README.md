@@ -125,10 +125,11 @@ target:
 
 ## Sécurité des commandes
 
-Le service NEXECUR peut renvoyer une erreur HTTP 500 après avoir réellement
-transmis un ordre à la centrale. Dans ce cas, l’intégration **ne renvoie jamais
-automatiquement la commande**. Elle relit l’état de la centrale jusqu’à
-confirmation ou expiration du délai, afin d’éviter les commandes en double.
+Le service NEXECUR peut renvoyer une erreur HTTP 500, une réponse vide ou une
+réponse non JSON après avoir réellement transmis un ordre à la centrale. Dans
+ce cas, l’intégration **ne renvoie jamais automatiquement la commande**. Elle
+relit l’état de la centrale jusqu’à confirmation ou expiration du délai, afin
+d’éviter les commandes en double.
 
 Le PIN est enregistré dans la configuration interne de Home Assistant. Il
 n’est jamais exposé comme attribut d’entité ni écrit dans les journaux de

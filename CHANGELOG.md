@@ -1,0 +1,19 @@
+# Historique des versions
+
+## 0.1.2
+
+- Traite une réponse vide, non JSON ou interrompue après une commande comme un
+  résultat incertain.
+- Ne renvoie jamais l’ordre dans cette situation.
+- Confirme le résultat par lecture de l’état réel de la centrale.
+
+## 0.1.1
+
+- Ajoute l’icône au paquet téléchargé par HACS.
+- Valide la structure complète du dépôt avec l’action HACS officielle.
+
+## 0.1.0
+
+- Première version publique.
+- État, activation totale, partiels 1 et 2, et désactivation.
+- Configuration graphique et renouvellement automatique de session.
