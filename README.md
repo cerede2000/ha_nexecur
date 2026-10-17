@@ -30,6 +30,8 @@ scripts Home Assistant.
 - Prise en charge de plusieurs sites NEXECUR
 - Traductions française et anglaise
 - Aucune dépendance Python supplémentaire
+- Version installée visible dans les informations de l’appareil et dans
+  l’attribut `integration_version`
 
 | Action Home Assistant | Mode NEXECUR |
 | --- | --- |

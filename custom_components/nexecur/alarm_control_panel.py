@@ -21,6 +21,7 @@ from .api import NexecurError
 from .const import (
     CONF_SITE_ID,
     DOMAIN,
+    INTEGRATION_VERSION,
     PANEL_ARMED_AWAY,
     PANEL_ARMED_PARTIAL_1,
     PANEL_ARMED_PARTIAL_2,
@@ -72,6 +73,7 @@ class NexecurAlarm(CoordinatorEntity[NexecurCoordinator], AlarmControlPanelEntit
             manufacturer="NEXECUR",
             model="Cloud alarm panel",
             name=site_name,
+            sw_version=INTEGRATION_VERSION,
         )
         features = AlarmControlPanelEntityFeature.ARM_AWAY
         if _value_is_enabled(runtime.api.site_info.get("panel_sp1", 1)):
@@ -100,6 +102,7 @@ class NexecurAlarm(CoordinatorEntity[NexecurCoordinator], AlarmControlPanelEntit
         data = self.coordinator.data or {}
         panel_status = data.get("panel_status")
         attributes: dict[str, Any] = {
+            "integration_version": INTEGRATION_VERSION,
             "nexecur_panel_status": panel_status,
             "partial_1_name": self._api.site_info.get("panel_sp1_nom", "Partiel 1"),
             "partial_2_name": self._api.site_info.get("panel_sp2_nom", "Partiel 2"),
