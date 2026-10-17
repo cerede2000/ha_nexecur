@@ -3,7 +3,6 @@
   "name": "NEXECUR",
   "codeowners": ["@cerede2000"],
   "config_flow": true,
-  "description": "Intégration Home Assistant non officielle pour les systèmes d'alarme Mon NEXECUR.",
   "documentation": "https://github.com/cerede2000/ha_nexecur",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
