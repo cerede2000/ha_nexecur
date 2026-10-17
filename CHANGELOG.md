@@ -1,5 +1,11 @@
 # Historique des versions
 
+## 0.1.4
+
+- Ajoute la validation Hassfest requise par Home Assistant.
+- Déclare la disponibilité de l’intégration pour la France.
+- Met le manifeste en conformité avec les règles actuelles.
+
 ## 0.1.3
 
 - Remplace l’icône générique par l’asset officiel fourni depuis Google Play.

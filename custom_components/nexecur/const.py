@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import timedelta
 
 DOMAIN = "nexecur"
-INTEGRATION_VERSION = "0.1.3"
+INTEGRATION_VERSION = "0.1.4"
 PLATFORMS = ["alarm_control_panel"]
 
 CONF_SITE_ID = "site_id"
