@@ -1,6 +1,6 @@
 # Historique des versions
 
-## Non publié
+## 0.1.5 – 2026-11-03
 
 - Distingue verrouillage temporaire, indisponibilité, réponse API malformée et
   rejet d’authentification dans la configuration et la réauthentification.
