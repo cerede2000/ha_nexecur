@@ -1,5 +1,13 @@
 # Historique des versions
 
+## Non publié
+
+- Distingue verrouillage temporaire, indisponibilité, réponse API malformée et
+  rejet d’authentification dans la configuration et la réauthentification.
+- Traite le rejet d’une session fraîche comme une indisponibilité du service.
+- Ajoute des diagnostics HTTP/API sans corps de réponse ni secrets.
+- Ajoute des tests reproductibles sous Home Assistant 2026.10.3 et 2026.10.4.
+
 ## 0.1.4
 
 - Ajoute la validation Hassfest requise par Home Assistant.
