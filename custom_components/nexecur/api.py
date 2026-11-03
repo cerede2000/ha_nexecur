@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import base64
-from collections.abc import Mapping
 import hashlib
 import json
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 from aiohttp import ClientError, ClientResponse, ClientSession
@@ -44,6 +44,10 @@ class NexecurAuthenticationError(NexecurError):
 
 class NexecurUnavailableError(NexecurError):
     """The site or panel is temporarily unavailable."""
+
+
+class NexecurAccountLockedError(NexecurUnavailableError):
+    """Authentication is temporarily blocked; changing the PIN is not required."""
 
 
 class NexecurCommandError(NexecurError):
@@ -83,33 +87,56 @@ class NexecurApi:
         if self._token is not None and not force:
             return self.site_info
 
+        # Never retain a stale token if forced authentication fails.
+        self._token = None
         salt_response = await self._async_post("salt", {"id_site": int(self.site_id)})
-        if salt_response.get("status") != 0 or not salt_response.get("salt"):
-            raise NexecurAuthenticationError("Unable to retrieve the authentication salt")
+        salt_status = _response_status(salt_response, "salt")
+        if salt_status != 0:
+            # This request contains no PIN: a failure cannot establish that the
+            # credentials are wrong. The private API's other salt codes are undocumented.
+            raise NexecurUnavailableError(
+                f"Unable to retrieve the authentication salt (salt status {salt_status})"
+            )
+        if not isinstance(salt_response.get("salt"), str) or not salt_response["salt"]:
+            raise NexecurConnectionError("NEXECUR returned no authentication salt")
 
         try:
             salt = base64.b64decode(salt_response["salt"], validate=True)
         except (TypeError, ValueError) as err:
-            raise NexecurConnectionError("NEXECUR returned an invalid authentication salt") from err
+            raise NexecurConnectionError(
+                "NEXECUR returned an invalid authentication salt"
+            ) from err
 
         material = salt + self._pin.encode("utf-16le")
         payload = {
             "id_site": int(self.site_id),
             "pin": base64.b64encode(hashlib.sha1(material).digest()).decode("ascii"),
-            "password": base64.b64encode(hashlib.sha256(material).digest()).decode("ascii"),
+            "password": base64.b64encode(hashlib.sha256(material).digest()).decode(
+                "ascii"
+            ),
             "partage": "1",
             "id_device": self._device_id,
         }
         response = await self._async_post("site", payload)
-        status = response.get("status")
+        status = _response_status(response, "site")
+        if status == 7:
+            raise NexecurAccountLockedError(
+                "The account is temporarily locked (site status 7)"
+            )
+        if status in SESSION_ERROR_STATUSES:
+            raise NexecurAuthenticationError(
+                f"The connection code or PIN was rejected (site status {status})"
+            )
         if status not in (0, 10):
-            if status == 7:
-                raise NexecurAuthenticationError("The account is temporarily locked")
-            raise NexecurAuthenticationError("The connection code or PIN was rejected")
+            raise NexecurUnavailableError(
+                f"Authentication is unavailable (site status {status})"
+            )
 
         token = response.get("token")
-        if not token:
-            raise NexecurConnectionError("NEXECUR authenticated but returned no session token")
+        if not isinstance(token, str) or not token:
+            raise NexecurConnectionError(
+                "NEXECUR authenticated but returned no session token"
+            )
 
         self._token = str(token)
         self.site_info = response
@@ -119,9 +146,16 @@ class NexecurApi:
         """Return the current panel status, renewing the session once if necessary."""
         await self.async_authenticate()
         response = await self._async_post("panel-status", {}, token=self._token)
-        if response.get("status") in SESSION_ERROR_STATUSES:
+        if _response_status(response, "panel-status") in SESSION_ERROR_STATUSES:
             await self.async_authenticate(force=True)
             response = await self._async_post("panel-status", {}, token=self._token)
+            if _response_status(response, "panel-status") in SESSION_ERROR_STATUSES:
+                self._token = None
+                # Authentication just succeeded. Rejecting its fresh token is
+                # a service/session failure, not evidence of a bad PIN.
+                raise NexecurUnavailableError(
+                    "NEXECUR rejected a fresh session while reading panel status"
+                )
         self._raise_service_error(response, command=False)
         return response
 
@@ -184,12 +218,18 @@ class NexecurApi:
     def _ensure_command_available(self, requested_status: int) -> None:
         """Validate capabilities returned during authentication."""
         if self.site_info.get("status") == 10:
-            raise NexecurUnavailableError("This shared access is outside its allowed time window")
+            raise NexecurUnavailableError(
+                "This shared access is outside its allowed time window"
+            )
         if not _value_is_enabled(self.site_info.get("panel_available", 1)):
             raise NexecurUnavailableError("This account cannot control the alarm panel")
-        if requested_status == 2 and not _value_is_enabled(self.site_info.get("panel_sp1", 1)):
+        if requested_status == 2 and not _value_is_enabled(
+            self.site_info.get("panel_sp1", 1)
+        ):
             raise NexecurUnavailableError("Partial mode 1 is not enabled for this site")
-        if requested_status == 3 and not _value_is_enabled(self.site_info.get("panel_sp2", 1)):
+        if requested_status == 3 and not _value_is_enabled(
+            self.site_info.get("panel_sp2", 1)
+        ):
             raise NexecurUnavailableError("Partial mode 2 is not enabled for this site")
 
     async def _async_wait_until_not_pending(self) -> None:
@@ -222,7 +262,9 @@ class NexecurApi:
             if last_status == requested_status:
                 return result
 
-        detail = f"; last panel status was {last_status}" if last_status is not None else ""
+        detail = (
+            f"; last panel status was {last_status}" if last_status is not None else ""
+        )
         if last_error is not None:
             detail += f"; last read failed: {last_error}"
         raise NexecurCommandError(
@@ -230,18 +272,24 @@ class NexecurApi:
             + detail
         )
 
-    def _raise_service_error(self, response: Mapping[str, Any], *, command: bool) -> None:
+    def _raise_service_error(
+        self, response: Mapping[str, Any], *, command: bool
+    ) -> None:
         """Raise a typed exception for an API-level status."""
-        status = response.get("status")
+        status = _response_status(response, "panel service")
         if status == 0:
             return
         if status in SESSION_ERROR_STATUSES:
             self._token = None
-            raise NexecurAuthenticationError("The NEXECUR session is invalid or expired")
+            raise NexecurAuthenticationError(
+                "The NEXECUR session is invalid or expired"
+            )
         if command:
             message = ACTION_ERRORS.get(status, "the alarm command was rejected")
             raise NexecurCommandError(f"{message} (service status {status})")
-        raise NexecurUnavailableError(f"Unable to read alarm status (service status {status})")
+        raise NexecurUnavailableError(
+            f"Unable to read alarm status (service status {status})"
+        )
 
     async def _async_post(
         self,
@@ -266,23 +314,42 @@ class NexecurApi:
         except TimeoutError as err:
             raise NexecurConnectionError(f"Timeout while calling {service}") from err
         except ClientError as err:
-            raise NexecurConnectionError(f"Connection failed while calling {service}: {err}") from err
+            raise NexecurConnectionError(
+                f"Connection failed while calling {service}"
+            ) from err
 
     @staticmethod
     async def _async_decode_response(
         service: str, response: ClientResponse
     ) -> dict[str, Any]:
         """Decode one response and retain HTTP errors for command safety."""
-        raw = await response.text()
+        _LOGGER.debug("NEXECUR %s: HTTP %s", service, response.status)
         if response.status < 200 or response.status >= 300:
-            raise NexecurHTTPError(service, response.status, raw[:300])
+            # Error pages can echo credentials or tokens. Never retain their body.
+            response.release()
+            raise NexecurHTTPError(service, response.status, "request failed")
+        raw = await response.text()
         try:
             decoded = json.loads(raw)
         except json.JSONDecodeError as err:
             raise NexecurConnectionError(f"Invalid response from {service}") from err
         if not isinstance(decoded, dict):
             raise NexecurConnectionError(f"Unexpected response from {service}")
+        status = decoded.get("status")
+        _LOGGER.debug(
+            "NEXECUR %s: service status %s",
+            service,
+            status if type(status) is int else "missing/invalid",
+        )
         return decoded
+
+
+def _response_status(response: Mapping[str, Any], service: str) -> int:
+    """Reject malformed statuses without treating them as credential failures."""
+    status = response.get("status")
+    if type(status) is not int:
+        raise NexecurConnectionError(f"Missing or invalid status from {service}")
+    return status
 
 
 def _value_is_enabled(value: Any) -> bool:
