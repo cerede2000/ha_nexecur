@@ -152,6 +152,15 @@ Utilisez le **code de raccordement numérique** et le **PIN du site**, et non le
 identifiants d’un compte web différent. Vérifiez qu’ils fonctionnent encore
 dans l’application Mon NEXECUR.
 
+Un compte temporairement verrouillé ou une indisponibilité du service ne
+signifie pas nécessairement que le PIN est incorrect. Évitez les tentatives
+répétées en cas de verrouillage.
+
+Le formulaire de cette intégration ne demande aucune version d’alarme. Si vous
+voyez « Choix de la version », vérifiez l’origine des fichiers installés,
+redémarrez Home Assistant puis rechargez le navigateur sans son cache. Consultez
+le [parcours d’authentification et les diagnostics](docs/authentication.md).
+
 ### La centrale met du temps à changer d’état
 
 C’est normal : l’ordre est transmis par le service NEXECUR puis confirmé par
@@ -169,7 +178,9 @@ logger:
     custom_components.nexecur: debug
 ```
 
-Les journaux ne contiennent ni le PIN ni le jeton de session.
+Les diagnostics de l’intégration indiquent uniquement le service appelé et ses
+statuts HTTP/API. Ne publiez pas de requête/réponse HTTP brute, de PIN, de code
+de raccordement, de sel ou de jeton de session.
 
 ## Limites connues
 
