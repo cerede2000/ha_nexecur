@@ -2,21 +2,22 @@
 
 from __future__ import annotations
 
-from typing import Any
 import uuid
+from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import (
+    NexecurAccountLockedError,
     NexecurApi,
     NexecurAuthenticationError,
     NexecurConnectionError,
     NexecurError,
+    NexecurUnavailableError,
 )
 from .const import CONF_DEVICE_ID, CONF_PIN, CONF_SITE_ID, CONF_SITE_NAME, DOMAIN
 
@@ -44,6 +45,10 @@ class NexecurConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     site_info = await _async_validate_credentials(
                         self.hass, site_id, pin, device_id
                     )
+                except NexecurAccountLockedError:
+                    errors["base"] = "account_locked"
+                except NexecurUnavailableError:
+                    errors["base"] = "service_unavailable"
                 except NexecurAuthenticationError:
                     errors["base"] = "invalid_auth"
                 except NexecurConnectionError:
@@ -68,9 +73,7 @@ class NexecurConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(
-        self, entry_data: dict[str, Any]
-    ) -> ConfigFlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> ConfigFlowResult:
         """Start reauthentication."""
         self._reauth_entry = self.hass.config_entries.async_get_entry(
             self.context["entry_id"]
@@ -95,6 +98,10 @@ class NexecurConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     pin,
                     str(entry.data[CONF_DEVICE_ID]),
                 )
+            except NexecurAccountLockedError:
+                errors["base"] = "account_locked"
+            except NexecurUnavailableError:
+                errors["base"] = "service_unavailable"
             except NexecurAuthenticationError:
                 errors["base"] = "invalid_auth"
             except NexecurConnectionError:
