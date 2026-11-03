@@ -26,7 +26,9 @@
       "cannot_connect": "Unable to connect to the NEXECUR service.",
       "invalid_auth": "Invalid connection code or PIN.",
       "invalid_site_id": "The connection code must contain digits only.",
-      "unknown": "Unexpected error. Check the Home Assistant logs."
+      "unknown": "Unexpected error. Check the Home Assistant logs.",
+      "account_locked": "The NEXECUR account is temporarily locked. Wait before trying again.",
+      "service_unavailable": "The NEXECUR service or alarm panel is unavailable. Try again later."
     },
     "abort": {
       "already_configured": "This NEXECUR site is already configured.",

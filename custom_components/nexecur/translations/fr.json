@@ -26,7 +26,9 @@
       "cannot_connect": "Connexion au service NEXECUR impossible.",
       "invalid_auth": "Code de raccordement ou PIN incorrect.",
       "invalid_site_id": "Le code de raccordement doit contenir uniquement des chiffres.",
-      "unknown": "Erreur inattendue. Consultez les journaux de Home Assistant."
+      "unknown": "Erreur inattendue. Consultez les journaux de Home Assistant.",
+      "account_locked": "Le compte NEXECUR est temporairement verrouillé. Patientez avant de réessayer.",
+      "service_unavailable": "Le service NEXECUR ou la centrale est indisponible. Réessayez plus tard."
     },
     "abort": {
       "already_configured": "Ce site NEXECUR est déjà configuré.",
